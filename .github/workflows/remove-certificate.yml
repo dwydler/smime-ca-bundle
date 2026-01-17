@@ -10,7 +10,7 @@ permissions:
 env:
   BRANCH_PREFIX: "github_action/action/cert-remove"
   PR_TITLE_PREFIX: "[AUTOMATION] Remove expired certificates on"
-  PR_LABELS: "github_actions, Remove CA"
+  PR_LABELS: "github_actions,Remove CA"
   POSH_DEBUG: "0"
 
 jobs:
@@ -150,7 +150,7 @@ jobs:
           target_branch: "${{ env.J2_BRANCH_DEST_NAME}}"
           title: "${{env.PR_TITLE_PREFIX}} ${{env.J2_TIMESTAMP}}"
           body: "**Automated pull request**"
-          #label: "${{ env.PR_LABELS }}"
+          label: "${{ env.PR_LABELS }}"
 
 
   job3:

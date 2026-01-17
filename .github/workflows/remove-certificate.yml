@@ -148,7 +148,7 @@ jobs:
           github_token: "${{ secrets.GH_TOKEN }}"
           source_branch: "${{ env.J2_BRANCH_SOURCE_NAME }}"
           target_branch: "${{ env.J2_BRANCH_DEST_NAME}}"
-          title: "${{env.PR_TITLE_PREFIX}}"
+          title: "${{env.PR_TITLE_PREFIX}} ${{env.J2_TIMESTAMP}}"
           body: "**Automated pull request**"
           #label: "${{ env.PR_LABELS }}"
 

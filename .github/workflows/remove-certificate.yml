@@ -9,7 +9,7 @@ permissions:
 
 env:
   BRANCH_PREFIX: "github_action/action/cert-remove"
-  PR_TITLE_PREFIX: "[AUTOMATION] Remove expired certificates"
+  PR_TITLE_PREFIX: "[AUTOMATION] Remove expired certificates on"
   PR_LABELS: "github_actions, Remove CA"
   POSH_DEBUG: "0"
 

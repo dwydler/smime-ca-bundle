@@ -1,0 +1,179 @@
+---
+name: Tools - Check and remove expired certificates
+
+"on":
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BRANCH_PREFIX: "github_action/action/cert-remove"
+  PR_TITLE_PREFIX: "[AUTOMATION] Remove expired certificates"
+  PR_LABELS: "github_actions, Remove CA"
+  POSH_DEBUG: "0"
+
+jobs:
+  job1:
+    name: Remove certificates
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create necessary variables
+        id: vars
+        run: |
+          timestamp=$(TZ='Europe/Berlin' date +'%Y%m%d-%H%M%S')
+          
+          echo "timestamp=$timestamp" >> $GITHUB_OUTPUT    
+          echo "branchname=${{env.BRANCH_PREFIX}}_$timestamp" >> $GITHUB_OUTPUT 
+
+      - name: Create a new branch
+        uses: peterjgrainger/action-create-branch@10c7d268152480ae859347db45dc69086cef1d9c # v3.0.0
+        env:
+          GITHUB_TOKEN: "${{ secrets.GH_TOKEN }}"
+        with:
+          branch: "${{ steps.vars.outputs.branchname }}"
+
+      - name: Checkout Repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        with:
+          ref: "${{ steps.vars.outputs.branchname }}"
+
+      - name: Check certificates
+        id: remove-certs
+        shell: pwsh
+        run: |
+          [bool] $bExpiredCertfound = $false
+
+          Get-ChildItem -Include ('*.cer', '*.der', '*.pem') -Recurse | Select -ExpandProperty Fullname | ForEach-Object {
+
+              # 
+              [string] $strFile = $_
+
+              # 
+              $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2([string] $strFile)
+
+              # 
+              [datetime] $dtCurrentTimestamp = Get-Date
+              [datetime] $dtCertNotAfter = $cert.NotAfter
+
+              # Output informations
+              Write-host "$strFile"
+              Write-host "$dtCurrentTimestamp"
+              Write-host "$dtCertNotAfter"
+
+              # 
+              if ( $dtCurrentTimestamp -gt $dtCertNotAfter) {
+
+                  # Output informations
+                  Write-Host "Es wurde min. ein abgelaufenes Zertifikat gefunden."
+
+                  # 
+                  Remove-Item -LiteralPath "$strFile" -Confirm:$false
+
+                  # 
+                  Write-Host "Delete file $strFile"
+
+                  # 
+                  git config --local user.email "${{ github.actor }}@users.noreply.github.com"
+                  git config --local user.name "${{ github.actor }}"
+
+                  git add $strFile
+                  git commit -m "Removed file $(Split-Path $strFile -leaf)"
+                  git push
+
+
+                  # Wert der Variable von 'False' auf 'True' setzen
+                  $bExpiredCertfound = $true
+
+                  #
+                  echo "bHitCertExpired=$bExpiredCertfound" >> $env:GITHUB_OUTPUT
+              
+                  # Schleife wird abgebrochen
+                  # break
+              }
+                  
+          }
+
+          # Output informations
+          Write-Host "Es wurde kein abgelaufenes Zertifikat gefunden."
+
+          #
+          echo "bHitCertExpired=$bExpiredCertfound" >> $env:GITHUB_OUTPUT
+
+      - name: Write bHitCertExpired
+        run: echo "${{ steps.remove-certs.outputs.bHitCertExpired }}"
+
+      - name: Write branchname
+        run: echo "${{ steps.vars.outputs.branchname }}"        
+
+    outputs:
+      ExpiredCertfound: "${{ steps.remove-certs.outputs.bHitCertExpired }}"
+      BranchName: "${{ steps.vars.outputs.branchname }}"
+      timestamp: "${{ steps.vars.outputs.timestamp }}"
+
+
+  job2:
+    name: Pull Request
+    needs: job1
+    if: needs.job1.outputs.ExpiredCertfound == 'true'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    env:
+      J2_BRANCH_SOURCE_NAME: "${{ needs.job1.outputs.BranchName }}"
+      J2_BRANCH_DEST_NAME: "${{ github.ref_name }}"
+      J2_TIMESTAMP: "${{ needs.job1.outputs.timestamp }}"
+
+    steps:
+      - name: Write BranchName
+        run: echo "${{ env.J2_BRANCH_SOURCE_NAME }}"
+
+      - name: Checkout Repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        with:
+          ref: ${{ env.J2_BRANCH_SOURCE_NAME }}
+          fetch-depth: '0'
+
+      - name: Create pull request
+        id: pullrequest
+        uses: devops-infra/action-pull-request@b2895bff2ff66579f6704d717a1ea75fad919e84 # v1.0.2
+        with:
+          github_token: "${{ secrets.GH_TOKEN }}"
+          source_branch: "${{ env.J2_BRANCH_SOURCE_NAME }}"
+          target_branch: "${{ env.J2_BRANCH_DEST_NAME}}"
+          title: "${{env.PR_TITLE_PREFIX}}"
+          body: "**Automated pull request**"
+          label: "${{ env.PR_LABELS }}"
+
+
+  job3:
+    name: Cleanup
+    needs: job1
+    if: needs.job1.outputs.ExpiredCertfound == 'false'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    env:
+      J3_BRANCH_SOURCE_NAME: "${{ needs.job1.outputs.BranchName }}"
+      
+    steps:
+      - name: Write ExpiredCertfound
+        run: echo "${{ needs.job1.outputs.ExpiredCertfound }}"
+
+      - name: Write BranchName
+        run: echo "${{ env.J3_BRANCH_SOURCE_NAME }}"
+
+      - name: Delete branch
+        uses: dawidd6/action-delete-branch@v3
+        with:
+          github_token: "${{ secrets.GH_TOKEN }}"
+          branches: "${{ env.J3_BRANCH_SOURCE_NAME }}"

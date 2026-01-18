@@ -119,9 +119,6 @@ jobs:
       - name: Write bHitCertExpired
         run: echo "${{ steps.remove-certs.outputs.bHitCertExpired }}"
 
-#      - name: Write CertExpiredList
-#        run: echo "${{ steps.remove-certs.outputs.CertExpiredList }}" 
-
     outputs:
       ExpiredCertfound: "${{ steps.remove-certs.outputs.bHitCertExpired }}"
       BranchName: "${{ steps.vars.outputs.branchname }}"

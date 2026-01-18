@@ -7,7 +7,7 @@ name: Tools - Check and remove expired certificates
 
   schedule:
     # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
-    - cron:  '30 11 * * SUN'
+    - cron:  '30 13 * * SUN'
 
 permissions:
   contents: read
@@ -55,19 +55,20 @@ jobs:
         shell: pwsh
         run: |
 
-          #
+          # Declaration and initialization of variables
           [bool] $bExpiredCertfound = $false
 
-          # 
+          # Retrieving files in all directories that have the file types cer, der, and pem
+          # The column named Fullname is passed to the loop.
           Get-ChildItem -Include ('*.cer', '*.der', '*.pem') -Recurse | Select -ExpandProperty Fullname | ForEach-Object {
 
-              # 
+              #  Declaration and initialization of variables for the loop
               [string] $strFile = $_
 
               # 
               $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2([string] $strFile)
 
-              # 
+              # Create variables with given values
               [datetime] $dtCurrentTimestamp = Get-Date
               [datetime] $dtCertNotAfter = $cert.NotAfter
 
@@ -76,51 +77,65 @@ jobs:
               Write-host "$dtCurrentTimestamp"
               Write-host "$dtCertNotAfter"
 
-              # 
+              # Check if the certificate's validity timestamp is older than the current time.
+              # True: The queries in the If block are processed.
+              # False: Nothing to do
               if ( $dtCurrentTimestamp -gt $dtCertNotAfter) {
 
                   # Output informations
                   Write-Host "Es wurde min. ein abgelaufenes Zertifikat gefunden."
 
-                  # 
+                  # Delete given file without a conformation
                   Remove-Item -LiteralPath "$strFile" -Confirm:$false
 
-                  # 
+                  # Output informations
                   Write-Host "Delete file $strFile"
 
-                  # 
+                  # Set global options
+                  # https://git-scm.com/docs/git-config
                   # https://medium.com/@shahbishwa21/automate-daily-commits-with-random-content-using-github-actions-804736759c1d
                   git config --local user.email "${{ env.GH_ACTOR }}@users.noreply.github.com"
                   git config --local user.name "${{ env.GH_ACTOR }}"
 
+                  # Add contents of new or changed files to the index
+                  # https://git-scm.com/docs/git-add
                   git add $strFile
+
+                  # Create a new commit containing the current contents of the index and the given log message describing the changes
+                  # https://git-scm.com/docs/git-commit
                   git commit -m "Removed $(Split-Path $strFile -Leaf)"
-                  # git commit -m "Removed $([io.path]::GetFileNameWithoutExtension($strFile))"
+
+                  # Update remote refs along with associated objects
+                  # https://git-scm.com/docs/git-push
                   git push
-               
+
                   # Wert der Variable von 'False' auf 'True' setzen
                   $bExpiredCertfound = $true
 
-                  #
+                  # Use GITHUB_OUTPUT to make the value available to other steps within the job.
                   # https://stackoverflow.com/questions/74443940/value-not-set-using-github-output
                   echo "bHitCertExpired=$bExpiredCertfound" >> $env:GITHUB_OUTPUT
-              
+
                   # Schleife wird abgebrochen
                   # break
               }
-                  
+
           }
 
-          # 
+          # Check if an expired certificate was found.
+          # True: The queries in the If block are processed.
+          # False: Nothing to do
           if (-not ($bExpiredCertfound) ) {
+
             # Output informations
             Write-Host "Es wurde keine abgelaufene Zertifikate gefunden."
 
-            #
+            # Use GITHUB_OUTPUT to make the value available to other steps within the job.
             # https://stackoverflow.com/questions/74443940/value-not-set-using-github-output
             echo "bHitCertExpired=$bExpiredCertfound" >> $env:GITHUB_OUTPUT
           }
-          # End
+
+          # End of script
 
       - name: Write branchname
         run: echo "${{ steps.vars.outputs.branchname }}"

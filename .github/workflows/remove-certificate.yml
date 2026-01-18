@@ -152,11 +152,16 @@ jobs:
           body: "**Automated pull request**"
           label: "${{ env.PR_LABELS }}"
 
+      - name: Write pr_number
+        run: echo "${{ steps.pullrequest.outputs.pr_number }}"
+    
+    outputs:
+      ExpiredCertfound: "${{ steps.pullrequest.outputs.pr_number }}"
 
   job3:
     name: Cleanup
     needs: job1
-    if: needs.job1.outputs.ExpiredCertfound == 'false'
+    if: needs.job1.outputs.ExpiredCertfound == 'false' 
     runs-on: ubuntu-latest
 
     permissions:

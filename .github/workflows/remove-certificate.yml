@@ -104,7 +104,7 @@ jobs:
           }
 
           # echo "CertExpiredList=$strCertExpiredList" >> $env:GITHUB_OUTPUT
-          $env:CertExpiredList=$strCertExpiredList
+          # $env:CertExpiredList=$strCertExpiredList
 
       - name: Write branchname
         run: echo "${{ steps.vars.outputs.branchname }}"
@@ -154,7 +154,7 @@ jobs:
           source_branch: "${{ env.J2_BRANCH_SOURCE_NAME }}"
           target_branch: "${{ env.J2_BRANCH_DEST_NAME}}"
           title: "${{env.PR_TITLE_PREFIX}} ${{env.J2_TIMESTAMP}}"
-          body: "${{ env.PR_CONTENT }} $env:CertExpiredList"
+          body: "${{ env.PR_CONTENT }}"
           label: "${{ env.PR_LABELS }}"
 
       - name: Write pr_number

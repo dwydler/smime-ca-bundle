@@ -19,7 +19,7 @@ env:
 jobs:
   job1:
     name: Remove certificates
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     permissions:
       contents: write
@@ -133,7 +133,7 @@ jobs:
     name: Pull Request
     needs: job1
     if: needs.job1.outputs.ExpiredCertfound == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     permissions:
       contents: read
@@ -179,7 +179,7 @@ jobs:
     if: always() && needs.job1.outputs.ExpiredCertfound == 'false' || needs.job2.outputs.PR_NR == ''
     # && needs.job2.result == 'skipped'
      # || needs.job2.outputs.PR_NR == ''
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     permissions:
       contents: write

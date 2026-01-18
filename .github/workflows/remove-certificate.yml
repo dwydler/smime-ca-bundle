@@ -11,7 +11,7 @@ env:
   # GH_ACTOR: ${{ github.actor }}
   GH_ACTOR: "dependabot[bot]"
   BRANCH_PREFIX: "github_action/action/cert-remove"
-  PR_TITLE_PREFIX: "[AUTOMATION] Removed expired certificates on"
+  PR_TITLE_PREFIX: "Remove expired certificates on"
   PR_CONTENT: "Es wurden abgelaufene Zertifikate im Repository gefunden und gelöscht. Alle Änderungen nachstehend als dedizierten Commit."
   PR_LABELS: "github_actions,Remove CA"
 

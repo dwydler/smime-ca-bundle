@@ -85,7 +85,7 @@ jobs:
                   git config --local user.name "${{ github.actor }}"
 
                   git add $strFile
-                  git commit -m "Removed file $(Split-Path $strFile -leaf)"
+                  git commit -m "Removed $(Split-Path $strFile -leaf)"
                   git push
 
                   #

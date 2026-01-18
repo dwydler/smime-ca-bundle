@@ -156,12 +156,14 @@ jobs:
         run: echo "${{ steps.pullrequest.outputs.pr_number }}"
     
     outputs:
-      ExpiredCertfound: "${{ steps.pullrequest.outputs.pr_number }}"
+      PR_NR: "${{ steps.pullrequest.outputs.pr_number }}"
 
   job3:
     name: Cleanup
-    # needs: job1
-    if: needs.job1.outputs.ExpiredCertfound == 'false' || needs.job2.outputs.pr_number == ''
+    needs:
+      - job1
+      - job2
+    if: needs.job1.outputs.ExpiredCertfound == 'false' && needs.job2.result == 'skipped' || needs.job2.outputs.PR_NR == ''
     runs-on: ubuntu-latest
 
     permissions:

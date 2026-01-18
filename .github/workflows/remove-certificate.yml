@@ -8,11 +8,12 @@ permissions:
   contents: read
 
 env:
+  GH_ACTOR: ${{ github.actor }}
   BRANCH_PREFIX: "github_action/action/cert-remove"
   PR_TITLE_PREFIX: "[AUTOMATION] Remove expired certificates on"
   PR_CONTENT: "Es wurden abgelaufene Zertifikate im Repository gefunden und gelöscht. Alle Änderungen nachstehend als dedizierten Commit."
   PR_LABELS: "github_actions,Remove CA"
-  POSH_DEBUG: "0"
+
 
 jobs:
   job1:
@@ -47,10 +48,11 @@ jobs:
         id: remove-certs
         shell: pwsh
         run: |
-          [bool] $bExpiredCertfound = $false
-          # [array] $arrCertExpiredList = @()
-          [string] $strCertExpiredList = ""
 
+          #
+          [bool] $bExpiredCertfound = $false
+
+          # 
           Get-ChildItem -Include ('*.cer', '*.der', '*.pem') -Recurse | Select -ExpandProperty Fullname | ForEach-Object {
 
               # 
@@ -82,17 +84,14 @@ jobs:
 
                   # 
                   # https://medium.com/@shahbishwa21/automate-daily-commits-with-random-content-using-github-actions-804736759c1d
-                  git config --local user.email "${{ github.actor }}@users.noreply.github.com"
-                  git config --local user.name "${{ github.actor }}"
+                  git config --local user.email "${{ env.GH_ACTOR }}@users.noreply.github.com"
+                  git config --local user.name "${{ env.GH_ACTOR }}"
 
                   git add $strFile
-                  # git commit -m "Removed $(Split-Path $strFile -leaf)"
-                  git commit -m "Removed $([io.path]::GetFileNameWithoutExtension($strFile))"
+                  git commit -m "Removed $(Split-Path $strFile -Leaf)"
+                  # git commit -m "Removed $([io.path]::GetFileNameWithoutExtension($strFile))"
                   git push
-
-                  #
-                  $strCertExpiredList += "$(Split-Path $strFile -leaf) `n"
-                
+               
                   # Wert der Variable von 'False' auf 'True' setzen
                   $bExpiredCertfound = $true
 
@@ -106,8 +105,7 @@ jobs:
                   
           }
 
-          # echo "CertExpiredList=$strCertExpiredList" >> $env:GITHUB_OUTPUT
-          # $env:CertExpiredList=$strCertExpiredList
+          # End
 
       - name: Write branchname
         run: echo "${{ steps.vars.outputs.branchname }}"

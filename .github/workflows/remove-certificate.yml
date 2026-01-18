@@ -176,7 +176,7 @@ jobs:
     needs:
       - job1
       - job2
-    if: always() && needs.job1.outputs.ExpiredCertfound == 'false' || always() && needs.job2.outputs.PR_NR == ''
+    if: always() && needs.job1.outputs.ExpiredCertfound == 'false' || needs.job2.outputs.PR_NR == ''
     # && needs.job2.result == 'skipped'
      # || needs.job2.outputs.PR_NR == ''
     runs-on: ubuntu-latest

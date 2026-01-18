@@ -10,6 +10,7 @@ permissions:
 env:
   BRANCH_PREFIX: "github_action/action/cert-remove"
   PR_TITLE_PREFIX: "[AUTOMATION] Remove expired certificates on"
+  PR_CONTENT: "Es wurden abgelaufene Zertifikate im Repository gefunden und gelöscht. Alle Änderungen nachstehend als dedizierten Commit."
   PR_LABELS: "github_actions,Remove CA"
   POSH_DEBUG: "0"
 
@@ -47,6 +48,7 @@ jobs:
         shell: pwsh
         run: |
           [bool] $bExpiredCertfound = $false
+          [array] $arrCertExpiredList = @()
 
           Get-ChildItem -Include ('*.cer', '*.der', '*.pem') -Recurse | Select -ExpandProperty Fullname | ForEach-Object {
 
@@ -85,6 +87,8 @@ jobs:
                   git commit -m "Removed file $(Split-Path $strFile -leaf)"
                   git push
 
+                  #
+                  $arrCertExpiredList+=$(Split-Path $strFile -leaf)
 
                   # Wert der Variable von 'False' auf 'True' setzen
                   $bExpiredCertfound = $true
@@ -99,10 +103,12 @@ jobs:
           }
 
           # Output informations
-          Write-Host "Es wurde kein abgelaufenes Zertifikat gefunden."
+          #Write-Host "Es wurde kein abgelaufenes Zertifikat gefunden."
 
           #
-          echo "bHitCertExpired=$bExpiredCertfound" >> $env:GITHUB_OUTPUT
+          #echo "bHitCertExpired=$bExpiredCertfound" >> $env:GITHUB_OUTPUT
+
+          Write-Host "$arrCertExpiredList"
 
       - name: Write bHitCertExpired
         run: echo "${{ steps.remove-certs.outputs.bHitCertExpired }}"

@@ -146,16 +146,6 @@ jobs:
           ref: ${{ env.J2_BRANCH_SOURCE_NAME }}
           fetch-depth: '0'
 
-      - id: files
-        uses: jitterbit/get-changed-files@v1
-        with:
-          format: 'json'
-      - run: |
-          readarray -t removed_files <<<"$(jq -r '.[]' <<<'${{ steps.files.outputs.removed }}')"
-          for removed_file in ${removed_files[@]}; do
-          echo "Do something with this ${removed_file}."
-          done
-
       - name: Create pull request
         id: pullrequest
         uses: devops-infra/action-pull-request@b2895bff2ff66579f6704d717a1ea75fad919e84 # v1.0.2

@@ -133,7 +133,7 @@ jobs:
     name: Pull Request
     needs: job1
     if: needs.job1.outputs.ExpiredCertfound == 'true'
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
 
     permissions:
       contents: read

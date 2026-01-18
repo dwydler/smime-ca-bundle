@@ -9,7 +9,7 @@ permissions:
 
 env:
   # GH_ACTOR: ${{ github.actor }}
-  GH_ACTOR: "Dependabot"
+  GH_ACTOR: "dependabot[bot]"
   BRANCH_PREFIX: "github_action/action/cert-remove"
   PR_TITLE_PREFIX: "[AUTOMATION] Remove expired certificates on"
   PR_CONTENT: "Es wurden abgelaufene Zertifikate im Repository gefunden und gelöscht. Alle Änderungen nachstehend als dedizierten Commit."

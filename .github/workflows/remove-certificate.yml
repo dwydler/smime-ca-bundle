@@ -164,7 +164,7 @@ jobs:
           source_branch: "${{ env.J2_BRANCH_SOURCE_NAME }}"
           target_branch: "${{ env.J2_BRANCH_DEST_NAME}}"
           title: "${{env.PR_TITLE_PREFIX}} ${{env.J2_TIMESTAMP}}"
-          body: "**Automated pull request**"
+          body: "${{ env.PR_CONTENT }} $env:CertExpiredList"
           label: "${{ env.PR_LABELS }}"
 
       - name: Write pr_number

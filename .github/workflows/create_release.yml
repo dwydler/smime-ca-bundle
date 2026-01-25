@@ -58,14 +58,14 @@ jobs:
           # get previous release tag
 
           if [ "$(git tag | wc -l)" -gt "1" ]; then
-            COMMIT_SHA=$(git rev-list -n 1 $(git tag --sort=-v:refname | head -n 2 | tail -n 1))
+            PREVIOUS_TAG=$(git tag --sort=-v:refname | head -n 2 | tail -n 1)
             
           else
-            COMMIT_SHA=$(git rev-list --max-parents=0 HEAD)
+            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
           fi
 
-          echo "commit sha: $COMMIT_SHA"
-          echo "commit_sha=$COMMIT_SHAG" >> $GITHUB_OUTPUT
+          echo "prev tag: $PREVIOUS_TAG"
+          echo "prev_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
 
 
       - name: Get changed files

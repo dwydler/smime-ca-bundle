@@ -96,7 +96,7 @@ jobs:
           fi
 
           echo "# Deleted certificates:" >> ReleaseNotes.md
-          if [[ -z "${ADDED_FILES}" ]]
+          if [[ -z "${DELETED_FILES}" ]]
           then
             echo "No certificates deleted in this release." >> ReleaseNotes.md
           else

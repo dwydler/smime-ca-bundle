@@ -80,7 +80,7 @@ jobs:
       - name: Create release description
         env:
           ADDED_FILES: ${{ steps.changed-files.outputs.added_files }}
-          DELETED_FILES: ${{ steps.changed-files-specific.outputs.deleted_files }}
+          DELETED_FILES: ${{ steps.changed-files.outputs.deleted_files }}
         run: |
           # create release description
           cd $GITHUB_WORKSPACE

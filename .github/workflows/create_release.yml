@@ -35,10 +35,30 @@ jobs:
       contents: write
 
     steps:
+      - name: Get previous release tag
+        id: get-tag
+        run: |
+          # get previous release tag
+
+          if [ "$(git tag | wc -l)" -gt "1" ]; then
+            COMMIT_SHA=$(git rev-list -n 1 $(git tag --sort=-v:refname | head -n 2 | tail -n 1))
+            FETCH_DEPTH=0
+            
+          else
+            COMMIT_SHA=$(git rev-list --max-parents=0 HEAD)
+            FETCH_DEPTH=1000000
+          fi
+
+          echo "commit sha: $COMMIT_SHA"
+          echo "commit_sha=$COMMIT_SHAG" >> $GITHUB_OUTPUT
+
+          echo "fetch-depth: $FETCH_DEPTH"
+          echo "fetch_depth=$FETCH_DEPTH" >> $GITHUB_OUTPUT
+
       - name: Checkout Repository 
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ steps.get-tag.outputs.fetch_depth }}
 
       - name: ZIP certificates
         run: |
@@ -52,20 +72,7 @@ jobs:
           certFiles=();for file in $(find ~+ -iname "*.cer");  do echo ${file}; certFiles+=(-certfile ${file}); done;
           openssl crl2pkcs7 -nocrl "${certFiles[@]}" -outform DER -out NoSpamProxy_CA_Bundle-${{ env.release_name }}.p7b
 
-      - name: Get previous release tag
-        id: get-tag
-        run: |
-          # get previous release tag
 
-          if [ "$(git tag | wc -l)" -gt "1" ]; then
-            COMMIT_SHA=$(git rev-list -n 1 $(git tag --sort=-v:refname | head -n 2 | tail -n 1))
-            
-          else
-            COMMIT_SHA=$(git rev-list --max-parents=0 HEAD)
-          fi
-
-          echo "commit sha: $COMMIT_SHA"
-          echo "commit_sha=$COMMIT_SHAG" >> $GITHUB_OUTPUT
 
 
       - name: Get changed files

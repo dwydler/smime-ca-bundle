@@ -56,9 +56,17 @@ jobs:
         id: get-tag
         run: |
           # get previous release tag
-          PREVIOUS_TAG=$(git tag --sort=-v:refname | head -n 2 | tail -n 1)
+
+          if [ "$(git tag | wc -l)" -gt "1" ]; then
+            PREVIOUS_TAG=$(git tag --sort=-v:refname | head -n 2 | tail -n 1)
+            
+          else
+            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+
           echo "prev tag: $PREVIOUS_TAG"
-          echo "prev_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT  
+          echo "prev_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+
 
       - name: Get changed files
         id: changed-files

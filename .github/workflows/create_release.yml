@@ -21,6 +21,7 @@ permissions:
 
 env:
   release_name: ${{ github.event.release.tag_name }}
+  release_notes: "ReleaseNotes.md"
 
 # set a custom name for the action view
 run-name: Create Release - ${{ github.event.release.tag_name }}        
@@ -89,31 +90,31 @@ jobs:
           # create release description
           cd $GITHUB_WORKSPACE
           
-          echo "# Added certificates:" >> ReleaseNotes.md
+          echo "# Added certificates:" >> ${{ env.release_notes }}
           if [[ -z "${ADDED_FILES}" ]]
           then
-            echo "No certificates added in this release." >> ReleaseNotes.md
+            echo "No certificates added in this release." >> ${{ env.release_notes }}
           else
             for file in ${ADDED_FILES}; do
-              echo "- $file  " >> ReleaseNotes.md
+              echo "- $file  " >> ${{ env.release_notes }}
             done
           fi
 
-          echo "# Deleted certificates:" >> ReleaseNotes.md
+          echo "# Deleted certificates:" >> ${{ env.release_notes }}
           if [[ -z "${DELETED_FILES}" ]]
           then
-            echo "No certificates deleted in this release." >> ReleaseNotes.md
+            echo "No certificates deleted in this release." >> ${{ env.release_notes }}
           else
             for file in ${DELETED_FILES}; do
-              echo "- $file  " >> ReleaseNotes.md
+              echo "- $file  " >> ${{ env.release_notes }}
             done
           fi
 
       - name: Update release
         uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
         with:
-          name: ${{ env.release_name }}
-          tag: ${{ env.release_name }}
+          name: "${{ env.release_name }}"
+          tag: "${{ env.release_name }}"
           artifacts: "NoSpamProxy_CA_Bundle-${{ env.release_name }}.zip,NoSpamProxy_CA_Bundle-${{ env.release_name }}.p7b"
-          bodyFile: "ReleaseNotes.md"
+          bodyFile: "${{ env.release_notes }}"
           allowUpdates: "true"  

@@ -1,28 +1,42 @@
+---
+name: Create Release
 # This workflow is used to create new releases.
 # It creates a ZIP and P7B bundle of the CER files and generates a proper release description.
 
-name: Create Release
+
 
 # Controls when the workflow will run
-on:
+"on":
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number. (e.x.: 2024-02-04)'
-        required: true
+
+  #
+  release:
+    types:
+      - released
+      - prereleased
+
+permissions:
+  contents: read
+
+env:
+  release_name: ${{ github.event.release.tag_name }}
 
 # set a custom name for the action view
-run-name: Create Release - ${{ inputs.version }}        
+run-name: Create Release - ${{ env.release_name }}        
 
 jobs:
   build:
+    name: Build
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
-      - name: Get repo 
-        uses: actions/checkout@v4
+      - name: Checkout Repository 
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
 
@@ -30,14 +44,13 @@ jobs:
         run: |
           # Create ZIP archive
           cd $GITHUB_WORKSPACE
-          zip -r NoSpamProxy_CA_Bundle-${{ inputs.version }}.zip roots intermediaries -i *.cer
+          zip -r NoSpamProxy_CA_Bundle-${{ env.release_name }}.zip roots intermediaries -i *.cer
 
       - name: Create P7B certificate bundle
         run: |
-          # create P7B bundle
           cd $GITHUB_WORKSPACE
           certFiles=();for file in $(find ~+ -iname "*.cer");  do echo ${file}; certFiles+=(-certfile ${file}); done;
-          openssl crl2pkcs7 -nocrl "${certFiles[@]}" -outform DER -out NoSpamProxy_CA_Bundle-${{ inputs.version }}.p7b
+          openssl crl2pkcs7 -nocrl "${certFiles[@]}" -outform DER -out NoSpamProxy_CA_Bundle-${{ env.release_name }}.p7b
 
       - name: Get previous release tag
         id: get-tag
@@ -49,7 +62,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@e0021407031f5be11a464abee9a0776171c79891 # v47.0.1
         with:
           base_sha: ${{ steps.get-tag.outputs.prev_tag }}
           sha: ${{ github.event.workflow_run.head_branch }}
@@ -85,8 +98,8 @@ jobs:
           fi
 
       - name: Create release
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
         with:
-          tag: ${{ inputs.version }}
-          artifacts: "NoSpamProxy_CA_Bundle-${{ inputs.version }}.zip,NoSpamProxy_CA_Bundle-${{ inputs.version }}.p7b"
+          tag: ${{ env.release_name }}
+          artifacts: "NoSpamProxy_CA_Bundle-${{ env.release_name }}.zip,NoSpamProxy_CA_Bundle-${{ env.release_name }}.p7b"
           bodyFile: "ReleaseNotes.md"

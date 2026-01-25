@@ -52,19 +52,23 @@ jobs:
           certFiles=();for file in $(find ~+ -iname "*.cer");  do echo ${file}; certFiles+=(-certfile ${file}); done;
           openssl crl2pkcs7 -nocrl "${certFiles[@]}" -outform DER -out NoSpamProxy_CA_Bundle-${{ env.release_name }}.p7b
 
-      - name: Get previous release tag
-        id: get-tag
+      - name: Get commit hash
+        id: get-commit-sha
         run: |
-          # get previous release tag
+          # Get the commit sha from previous release tag
+          # If no release tag exists, use the first commit of the repository
 
           if [ "$(git tag | wc -l)" -gt "1" ]; then
             COMMIT_SHA=$(git rev-list -n 1 $(git tag --sort=-v:refname | head -n 2 | tail -n 1))
-            
           else
             COMMIT_SHA=$(git rev-list --max-parents=0 HEAD)
           fi
 
+          # Output informations
           echo "commit sha: $COMMIT_SHA"
+
+          # Use GITHUB_OUTPUT to make the value available to other steps within the job.
+          # https://stackoverflow.com/questions/74443940/value-not-set-using-github-output
           echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
 
 
@@ -72,7 +76,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@e0021407031f5be11a464abee9a0776171c79891 # v47.0.1
         with:
-          base_sha: ${{ steps.get-tag.outputs.commit_sha }}
+          base_sha: ${{ steps.get-commit-sha.outputs.commit_sha }}
           sha: ${{ github.event.workflow_run.head_branch }}
           files: |
             **.cer  
@@ -105,7 +109,7 @@ jobs:
             done
           fi
 
-      - name: Create release
+      - name: Update release
         uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
         with:
           name: ${{ env.release_name }}

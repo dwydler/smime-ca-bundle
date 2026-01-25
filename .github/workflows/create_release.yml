@@ -23,7 +23,7 @@ env:
   release_name: ${{ github.event.release.tag_name }}
 
 # set a custom name for the action view
-run-name: Create Release - ${{ env.release_name }}        
+run-name: Create Release - ${{ github.event.release.tag_name }}        
 
 jobs:
   build:

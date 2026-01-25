@@ -65,16 +65,15 @@ jobs:
           fi
 
           echo "commit sha: $COMMIT_SHA"
-          echo "commit_sha=$COMMIT_SHAG" >> $GITHUB_OUTPUT
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
 
 
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@e0021407031f5be11a464abee9a0776171c79891 # v47.0.1
         with:
-          base_sha: "4305e4c322f734fbe596346e28ea53ad09c9eb43"
+          base_sha: ${{ steps.get-tag.outputs.commit_sha }}
           sha: ${{ github.event.workflow_run.head_branch }}
-          fetch_missing_history_max_retries: 1000000
           files: |
             **.cer  
 
